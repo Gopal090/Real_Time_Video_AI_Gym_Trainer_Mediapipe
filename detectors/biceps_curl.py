@@ -4,9 +4,9 @@ from core.base_exercise import BaseExercise
 
 class BicepCurlDetector(BaseExercise):
 
-    DOWN_THRESHOLD = 160
-    UP_THRESHOLD = 50
-    MIN_VISIBILITY = 0.2
+    DOWN_THRESHOLD = 140
+    UP_THRESHOLD = 75
+    MIN_VISIBILITY = 0.1
     ELBOW_DRIFT_TOLERANCE = 0.06
     SWING_THRESHOLD = 15
 

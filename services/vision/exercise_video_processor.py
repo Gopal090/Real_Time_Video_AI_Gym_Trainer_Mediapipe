@@ -66,9 +66,9 @@ class VideoProcessor(VideoProcessorBase):
         options = vision.PoseLandmarkerOptions(
             base_options=base_options,
             running_mode=vision.RunningMode.IMAGE,
-            min_pose_detection_confidence=0.5,
-            min_tracking_confidence=0.5,
-            min_pose_presence_confidence=0.5,
+            min_pose_detection_confidence=0.2,
+            min_tracking_confidence=0.2,
+            min_pose_presence_confidence=0.2,
             output_segmentation_masks=False
         )
 

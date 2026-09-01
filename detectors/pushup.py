@@ -3,9 +3,9 @@ from core.base_exercise import BaseExercise
 
 class PushUpDetector(BaseExercise):
 
-    DOWN_THRESHOLD = 90
-    UP_THRESHOLD = 160
-    MIN_VISIBILITY = 0.2
+    DOWN_THRESHOLD = 115
+    UP_THRESHOLD = 150
+    MIN_VISIBILITY = 0.1
     HIP_SAG_TOLERANCE = 0.08
 
     LEFT_SHOULDER = 11
@@ -64,9 +64,8 @@ class PushUpDetector(BaseExercise):
         hip_deviation = hip_y - expected_hip_y
 
         key_landmark_visible = (
-            landmarks[hip_idx].visibility >= self.MIN_VISIBILITY
-            and landmarks[shoulder_idx].visibility >= self.MIN_VISIBILITY
-            and landmarks[ankle_idx].visibility >= self.MIN_VISIBILITY
+            landmarks[shoulder_idx].visibility >= self.MIN_VISIBILITY
+            and landmarks[elbow_idx].visibility >= self.MIN_VISIBILITY
         )
 
         if key_landmark_visible:

@@ -3,9 +3,9 @@ from core.base_exercise import BaseExercise
 
 class SquatDetector(BaseExercise):
 
-    DOWN_THRESHOLD = 100
-    UP_THRESHOLD = 160
-    MIN_VISIBILITY = 0.2
+    DOWN_THRESHOLD = 125
+    UP_THRESHOLD = 150
+    MIN_VISIBILITY = 0.1
 
     LEFT_HIP = 23
     LEFT_KNEE = 25
@@ -65,7 +65,6 @@ class SquatDetector(BaseExercise):
         key_landmark_visible = (
             landmarks[hip_idx].visibility >= self.MIN_VISIBILITY
             and landmarks[knee_idx].visibility >= self.MIN_VISIBILITY
-            and landmarks[ankle_idx].visibility >= self.MIN_VISIBILITY
         )
 
         if key_landmark_visible:
