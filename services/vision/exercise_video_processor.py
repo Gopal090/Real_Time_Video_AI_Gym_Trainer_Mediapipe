@@ -111,7 +111,7 @@ class VideoProcessor(VideoProcessorBase):
                 p1 = landmarks[start_idx]
                 p2 = landmarks[end_idx]
 
-                if p1.visibility > 0.7 and p2.visibility > 0.7:
+                if p1.visibility > 0.2 and p2.visibility > 0.2:
                     cv2.line(
                         img,
                         (int(p1.x * w), int(p1.y * h)),
@@ -121,7 +121,7 @@ class VideoProcessor(VideoProcessorBase):
                     )
 
         for lm in landmarks:
-            if lm.visibility > 0.7:
+            if lm.visibility > 0.2:
                 cv2.circle(
                     img,
                     (int(lm.x * w), int(lm.y * h)),

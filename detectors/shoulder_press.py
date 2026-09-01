@@ -5,7 +5,7 @@ class ShoulderPressDetector(BaseExercise):
 
     DOWN_THRESHOLD = 90
     UP_THRESHOLD = 160
-    MIN_VISIBILITY = 0.7
+    MIN_VISIBILITY = 0.2
     LEFT_SHOULDER = 11
     RIGHT_SHOULDER = 12
     LEFT_ELBOW = 13

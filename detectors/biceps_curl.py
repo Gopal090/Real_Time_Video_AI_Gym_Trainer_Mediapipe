@@ -6,7 +6,7 @@ class BicepCurlDetector(BaseExercise):
 
     DOWN_THRESHOLD = 160
     UP_THRESHOLD = 50
-    MIN_VISIBILITY = 0.7
+    MIN_VISIBILITY = 0.2
     ELBOW_DRIFT_TOLERANCE = 0.06
     SWING_THRESHOLD = 15
 

@@ -5,7 +5,7 @@ class PushUpDetector(BaseExercise):
 
     DOWN_THRESHOLD = 90
     UP_THRESHOLD = 160
-    MIN_VISIBILITY = 0.7
+    MIN_VISIBILITY = 0.2
     HIP_SAG_TOLERANCE = 0.08
 
     LEFT_SHOULDER = 11

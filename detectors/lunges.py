@@ -5,7 +5,7 @@ class LungesDetector(BaseExercise):
 
     DOWN_THRESHOLD = 100
     UP_THRESHOLD = 160
-    MIN_VISIBILITY = 0.7
+    MIN_VISIBILITY = 0.2
     BALANCE_TOLERANCE = 0.10
 
     LEFT_HIP = 23
