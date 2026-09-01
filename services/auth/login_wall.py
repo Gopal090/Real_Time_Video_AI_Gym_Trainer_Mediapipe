@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 from services.persistence.exercise_repository import get_or_create_user
 
@@ -8,7 +9,11 @@ def render_login_wall():
     #title start
     col1, col2 = st.columns([0.15, 0.85], vertical_alignment="center")
     with col1:
-        st.image(r"C:/Users/Gopal Kaushik/Downloads/gym.png", width=60)
+        img_path = r"C:/Users/Gopal Kaushik/Downloads/gym.png"
+        if os.path.exists(img_path):
+            st.image(img_path, width=60)
+        else:
+            st.markdown("<h1 style='margin:0;'>🏋️</h1>", unsafe_allow_html=True)
     with col2:
         st.title("AI REAL-TIME GYM TRAINER")
     #title end

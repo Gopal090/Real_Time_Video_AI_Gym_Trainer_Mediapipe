@@ -16,7 +16,7 @@ import pandas as pd
 
 def main():
     st.set_page_config(
-        page_icon=r"C:/Users/Gopal Kaushik/Downloads/gym.png",
+        page_icon="🏋️",
         page_title="AI Real-Time Gym Coach",
         initial_sidebar_state="expanded",
         layout="centered"
