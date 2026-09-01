@@ -40,7 +40,7 @@ class VideoProcessor(VideoProcessorBase):
             base_options=base_options,
             running_mode=vision.RunningMode.VIDEO,
             min_pose_detection_confidence=0.7,
-            min_pose_tracking_confidence=0.7,
+            min_tracking_confidence=0.7,
             min_pose_presence_confidence=0.7,
             output_segmentation_masks=False
         )
