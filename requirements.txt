@@ -1,7 +1,6 @@
 streamlit-webrtc
 mediapipe
-opencv-python-headless
 pandas
 groq
-gTTS
+gtts
 python-dotenv
