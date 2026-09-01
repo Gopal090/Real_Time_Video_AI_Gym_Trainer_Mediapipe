@@ -5,8 +5,6 @@ import numpy as np
 import mediapipe as mp
 import av
 from streamlit_webrtc import VideoProcessorBase
-from mediapipe.tasks import python
-from mediapipe.tasks.python import vision
 
 from detectors.squats import SquatDetector
 from detectors.pushup import PushUpDetector
@@ -22,30 +20,11 @@ class VideoProcessor(VideoProcessorBase):
         self._latest_metrics = None
         self._exercise_type = "squats"
 
-        current_file_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.abspath(os.path.join(current_file_dir, "..", ".."))
-        model_path = os.path.join(project_root, "ml_models", "pose_landmarker_full.task")
-
-        if not os.path.exists(model_path):
-            model_path = os.path.join(os.getcwd(), "ml_models", "pose_landmarker_full.task")
-
-        if os.path.exists(model_path):
-            with open(model_path, "rb") as f:
-                model_bytes = f.read()
-            base_options = python.BaseOptions(model_asset_buffer=model_bytes)
-        else:
-            base_options = python.BaseOptions(model_asset_path=model_path)
-
-        options = vision.PoseLandmarkerOptions(
-            base_options=base_options,
-            running_mode=vision.RunningMode.VIDEO,
-            min_pose_detection_confidence=0.7,
-            min_tracking_confidence=0.7,
-            min_pose_presence_confidence=0.7,
-            output_segmentation_masks=False
+        self._mp_pose = mp.solutions.pose
+        self._pose = self._mp_pose.Pose(
+            min_detection_confidence=0.7,
+            min_tracking_confidence=0.7
         )
-
-        self._landmarker = vision.PoseLandmarker.create_from_options(options)
 
         self._detectors = {
             "squats": SquatDetector(),
@@ -54,8 +33,6 @@ class VideoProcessor(VideoProcessorBase):
             "lunges": LungesDetector(),
             "shoulder_press": ShoulderPressDetector(),
         }
-
-        self._frame_timestamp_ms = 0
 
     def set_latest_metrics(self, metrics):
         with self._lock:
@@ -212,15 +189,11 @@ class VideoProcessor(VideoProcessorBase):
         )
         image = np.ascontiguousarray(image)
 
-        mp_image = mp.Image(
-            image_format=mp.ImageFormat.SRGB,
-            data=cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        )
-        self._frame_timestamp_ms += 33
-        result = self._landmarker.detect_for_video(mp_image, self._frame_timestamp_ms)
+        rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        results = self._pose.process(rgb_image)
 
-        if result and result.pose_landmarks:
-            landmarks = result.pose_landmarks[0]
+        if results and results.pose_landmarks:
+            landmarks = results.pose_landmarks.landmark
 
             self._draw_skeleton(image, landmarks)
 
