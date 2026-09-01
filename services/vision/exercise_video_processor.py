@@ -1,4 +1,5 @@
 import os
+import time
 import threading
 import cv2
 import numpy as np
@@ -228,7 +229,7 @@ class VideoProcessor(VideoProcessorBase):
             image_format=mp.ImageFormat.SRGB,
             data=cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         )
-        self._frame_timestamp_ms += 33
+        timestamp_ms = int(time.time() * 1000)
         result = None
         landmarker = self._landmarker
         if not landmarker:
@@ -240,7 +241,7 @@ class VideoProcessor(VideoProcessorBase):
 
         if landmarker:
             try:
-                result = landmarker.detect_for_video(mp_image, self._frame_timestamp_ms)
+                result = landmarker.detect_for_video(mp_image, timestamp_ms)
             except Exception as e:
                 result = None
 

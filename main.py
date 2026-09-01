@@ -183,10 +183,6 @@ def main():
             VoicePipeline.autoplay_audio(st.session_state.audio_to_play)
             st.session_state.audio_to_play = None
 
-        if context.state.playing:
-            time.sleep(0.25)
-            st.rerun()
-
         inject_webrtc_styles()
     
     st.divider()
