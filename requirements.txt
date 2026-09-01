@@ -5,9 +5,3 @@ pandas
 groq
 gTTS
 python-dotenv
-
-
-
-
-
-
