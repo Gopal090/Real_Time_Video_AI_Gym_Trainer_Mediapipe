@@ -13,8 +13,6 @@ ENV/
 .env
 .streamlit/secrets.toml
 
-# IDE & OS specific files
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
+# Temp installer files
+git_installer.exe
+git_setup.exe
