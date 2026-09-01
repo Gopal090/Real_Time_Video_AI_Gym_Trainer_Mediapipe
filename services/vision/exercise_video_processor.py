@@ -237,54 +237,44 @@ class VideoProcessor(VideoProcessorBase):
         )
 
     def recv(self, frame):
-        image = np.asarray(
-            cv2.flip(frame.to_ndarray(format="bgr24"), 1),
-            dtype=np.uint8
-        )
-        image = np.ascontiguousarray(image)
+        try:
+            image = frame.to_ndarray(format="bgr24")
+            image = cv2.flip(image, 1)
+            image = np.ascontiguousarray(image)
 
-        mp_image = mp.Image(
-            image_format=mp.ImageFormat.SRGB,
-            data=cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        )
-        timestamp_ms = int(time.time() * 1000)
-        result = None
-        landmarker = self._landmarker
-        if not landmarker:
-            try:
-                landmarker = get_shared_landmarker()
-                self._landmarker = landmarker
-            except Exception as e:
-                landmarker = None
+            mp_image = mp.Image(
+                image_format=mp.ImageFormat.SRGB,
+                data=cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            )
 
-        if landmarker:
-            try:
-                result = landmarker.detect(mp_image)
-            except Exception as e:
-                result = None
+            result = None
+            if self._landmarker is not None:
+                try:
+                    result = self._landmarker.detect(mp_image)
+                except Exception:
+                    result = None
 
-        if result and result.pose_landmarks:
-            landmarks = result.pose_landmarks[0]
+            if result and result.pose_landmarks and len(result.pose_landmarks) > 0:
+                landmarks = result.pose_landmarks[0]
+                self._draw_skeleton(image, landmarks)
 
-            self._draw_skeleton(image, landmarks)
+                ex_type = self.get_exercise()
+                detector = self._detectors.get(ex_type)
+                if detector:
+                    metrics = detector.process(landmarks)
+                    metrics["pose_detected"] = True
+                    self._draw_overlays(image, metrics, ex_type)
+                    self.set_latest_metrics(metrics)
+            else:
+                self._draw_no_pose_warnings(image)
+                with self._lock:
+                    if self._latest_metrics is not None:
+                        self._latest_metrics["pose_detected"] = False
+                    else:
+                        self._latest_metrics = {"pose_detected": False}
 
-            ex_type = self.get_exercise()
-            detector = self._detectors.get(ex_type)
-
-            if detector:
-                metrics = detector.process(landmarks)
-                metrics["pose_detected"] = True
-                self._draw_overlays(image, metrics, ex_type)
-                self.set_latest_metrics(metrics)
-        else:
-            self._draw_no_pose_warnings(image)
-
-            with self._lock:
-                if self._latest_metrics is not None:
-                    self._latest_metrics["pose_detected"] = False
-                else:
-                    self._latest_metrics = {"pose_detected": False}
-
-        return av.VideoFrame.from_ndarray(image, format="bgr24")
+            return av.VideoFrame.from_ndarray(image, format="bgr24")
+        except Exception:
+            return frame
 
 

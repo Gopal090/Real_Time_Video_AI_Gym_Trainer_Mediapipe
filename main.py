@@ -187,7 +187,11 @@ def main():
                 ]
             },
             media_stream_constraints={
-                "video": True,
+                "video": {
+                    "width": {"ideal": 640},
+                    "height": {"ideal": 480},
+                    "facingMode": "user"
+                },
                 "audio": False
             },
             async_processing=True
