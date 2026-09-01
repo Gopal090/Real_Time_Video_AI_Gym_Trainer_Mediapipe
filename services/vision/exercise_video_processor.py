@@ -16,31 +16,48 @@ from detectors.shoulder_press import ShoulderPressDetector
 from services.config.workout_config import POSE_CONNECTIONS
 
 
+_GLOBAL_LANDMARKER = None
+_LANDMARKER_LOCK = threading.Lock()
+
+
+def get_shared_landmarker():
+    global _GLOBAL_LANDMARKER
+    if _GLOBAL_LANDMARKER is None:
+        with _LANDMARKER_LOCK:
+            if _GLOBAL_LANDMARKER is None:
+                current_file_dir = os.path.dirname(os.path.abspath(__file__))
+                project_root = os.path.abspath(os.path.join(current_file_dir, "..", ".."))
+                model_path = os.path.join(project_root, "ml_models", "pose_landmarker_full.task")
+
+                if not os.path.exists(model_path):
+                    model_path = os.path.join(os.getcwd(), "ml_models", "pose_landmarker_full.task")
+
+                base_options = python.BaseOptions(model_asset_path=model_path)
+
+                options = vision.PoseLandmarkerOptions(
+                    base_options=base_options,
+                    running_mode=vision.RunningMode.VIDEO,
+                    min_pose_detection_confidence=0.7,
+                    min_tracking_confidence=0.7,
+                    min_pose_presence_confidence=0.7,
+                    output_segmentation_masks=False
+                )
+
+                _GLOBAL_LANDMARKER = vision.PoseLandmarker.create_from_options(options)
+    return _GLOBAL_LANDMARKER
+
+
 class VideoProcessor(VideoProcessorBase):
     def __init__(self):
         self._lock = threading.Lock()
         self._latest_metrics = None
         self._exercise_type = "squats"
 
-        current_file_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.abspath(os.path.join(current_file_dir, "..", ".."))
-        model_path = os.path.join(project_root, "ml_models", "pose_landmarker_full.task")
-
-        if not os.path.exists(model_path):
-            model_path = os.path.join(os.getcwd(), "ml_models", "pose_landmarker_full.task")
-
-        base_options = python.BaseOptions(model_asset_path=model_path)
-
-        options = vision.PoseLandmarkerOptions(
-            base_options=base_options,
-            running_mode=vision.RunningMode.VIDEO,
-            min_pose_detection_confidence=0.7,
-            min_tracking_confidence=0.7,
-            min_pose_presence_confidence=0.7,
-            output_segmentation_masks=False
-        )
-
-        self._landmarker = vision.PoseLandmarker.create_from_options(options)
+        try:
+            self._landmarker = get_shared_landmarker()
+        except Exception as e:
+            print(f"Error initializing PoseLandmarker: {e}")
+            self._landmarker = None
 
         self._detectors = {
             "squats": SquatDetector(),
@@ -212,7 +229,20 @@ class VideoProcessor(VideoProcessorBase):
             data=cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         )
         self._frame_timestamp_ms += 33
-        result = self._landmarker.detect_for_video(mp_image, self._frame_timestamp_ms)
+        result = None
+        landmarker = self._landmarker
+        if not landmarker:
+            try:
+                landmarker = get_shared_landmarker()
+                self._landmarker = landmarker
+            except Exception as e:
+                landmarker = None
+
+        if landmarker:
+            try:
+                result = landmarker.detect_for_video(mp_image, self._frame_timestamp_ms)
+            except Exception as e:
+                result = None
 
         if result and result.pose_landmarks:
             landmarks = result.pose_landmarks[0]
