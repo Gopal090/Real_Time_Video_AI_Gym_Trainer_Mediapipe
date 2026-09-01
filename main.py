@@ -34,17 +34,21 @@ def main():
 
     if "voice_pipeline" not in st.session_state:
         groq_api_key = os.getenv("GROQ_API_KEY")
-        if groq_api_key:
-            try:
+        if not groq_api_key and hasattr(st, "secrets") and "GROQ_API_KEY" in st.secrets:
+            groq_api_key = st.secrets["GROQ_API_KEY"]
+
+        try:
+            from services.coaching.tts import TextToSpeech
+            tts = TextToSpeech()
+            llm = None
+            if groq_api_key:
                 from groq import Groq
                 from services.coaching.llm import LLMCoach
-                from services.coaching.tts import TextToSpeech
                 client = Groq(api_key=groq_api_key)
                 llm = LLMCoach(client)
-                tts = TextToSpeech()
-                st.session_state.voice_pipeline = VoicePipeline(llm, tts)
-            except Exception as e:
-                pass
+            st.session_state.voice_pipeline = VoicePipeline(llm, tts)
+        except Exception as e:
+            pass
 
     workout_started = st.session_state.get("workout_started", False)
 
@@ -207,6 +211,10 @@ def main():
             st.session_state.audio_to_play = None
 
         inject_webrtc_styles()
+
+        if context.state.playing:
+            time.sleep(1.0)
+            st.rerun()
     
     st.divider()
 

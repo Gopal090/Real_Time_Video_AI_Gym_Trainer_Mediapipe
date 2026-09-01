@@ -77,10 +77,17 @@ class VoicePipeline:
             if now - self.last_spoken_at < 5:
                 return None
         
-        text =self.llm.give_feedback(event, issue)
-        voice= self.tts.speak(text)
+        if self.llm:
+            try:
+                text = self.llm.give_feedback(event, issue)
+            except Exception as e:
+                text = issue or f"{event.replace('_', ' ').capitalize()}!"
+        else:
+            text = issue or f"{event.replace('_', ' ').capitalize()}!"
 
-        self.last_spoken_at=now
+        voice = self.tts.speak(text) if self.tts else None
+
+        self.last_spoken_at = now
 
         return voice, text
     
