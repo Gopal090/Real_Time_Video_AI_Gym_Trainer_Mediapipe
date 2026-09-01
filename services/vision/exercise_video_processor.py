@@ -37,10 +37,10 @@ def get_shared_landmarker():
 
                 options = vision.PoseLandmarkerOptions(
                     base_options=base_options,
-                    running_mode=vision.RunningMode.VIDEO,
-                    min_pose_detection_confidence=0.7,
-                    min_tracking_confidence=0.7,
-                    min_pose_presence_confidence=0.7,
+                    running_mode=vision.RunningMode.IMAGE,
+                    min_pose_detection_confidence=0.5,
+                    min_tracking_confidence=0.5,
+                    min_pose_presence_confidence=0.5,
                     output_segmentation_masks=False
                 )
 
@@ -241,7 +241,7 @@ class VideoProcessor(VideoProcessorBase):
 
         if landmarker:
             try:
-                result = landmarker.detect_for_video(mp_image, timestamp_ms)
+                result = landmarker.detect(mp_image)
             except Exception as e:
                 result = None
 
