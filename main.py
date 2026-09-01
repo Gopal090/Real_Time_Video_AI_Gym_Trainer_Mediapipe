@@ -164,7 +164,7 @@ def main():
             unsafe_allow_html=True
         )
     else:
-        exercise = st.session_state.get("plan_exercise", "squats")
+        exercise = st.session_state.get("exercise_type", "squats")
         context = webrtc_streamer(
             key="exercise-analysis",
             mode=WebRtcMode.SENDRECV,
@@ -176,6 +176,9 @@ def main():
             },
             async_processing=True
         )
+
+        if context.video_processor:
+            context.video_processor.set_exercise(exercise)
 
         sync_metrics_update(context)
 

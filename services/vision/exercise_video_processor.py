@@ -54,10 +54,28 @@ class VideoProcessor(VideoProcessorBase):
         self._latest_metrics = None
         self._exercise_type = "squats"
 
+        current_file_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.abspath(os.path.join(current_file_dir, "..", ".."))
+        model_path = os.path.join(project_root, "ml_models", "pose_landmarker_full.task")
+
+        if not os.path.exists(model_path):
+            model_path = os.path.join(os.getcwd(), "ml_models", "pose_landmarker_full.task")
+
+        base_options = python.BaseOptions(model_asset_path=model_path)
+
+        options = vision.PoseLandmarkerOptions(
+            base_options=base_options,
+            running_mode=vision.RunningMode.IMAGE,
+            min_pose_detection_confidence=0.5,
+            min_tracking_confidence=0.5,
+            min_pose_presence_confidence=0.5,
+            output_segmentation_masks=False
+        )
+
         try:
-            self._landmarker = get_shared_landmarker()
+            self._landmarker = vision.PoseLandmarker.create_from_options(options)
         except Exception as e:
-            print(f"Error initializing PoseLandmarker: {e}")
+            print(f"Error creating per-instance PoseLandmarker: {e}")
             self._landmarker = None
 
         self._detectors = {

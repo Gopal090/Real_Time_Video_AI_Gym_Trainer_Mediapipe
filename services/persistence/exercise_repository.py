@@ -1,24 +1,18 @@
 import sqlite3
-import streamlit as st
 from pathlib import Path
 
-_DB_PATH = str(Path(__file__).parent.parent.parent/ "data.db")
+_DB_PATH = str(Path(__file__).parent.parent.parent / "data.db")
 
 
-
-
-@st.cache_resource
-def _get_connection():
-    conn = sqlite3.connect(_DB_PATH,check_same_thread=False)
-    conn.row_factory=sqlite3.Row
+def _get_conn():
+    conn = sqlite3.connect(_DB_PATH, timeout=30.0)
+    conn.row_factory = sqlite3.Row
     return conn
 
 
-
 def init_db():
-    conn = _get_connection()
-
-    with conn:
+    with _get_conn() as conn:
+        conn.execute("PRAGMA journal_mode=WAL;")
         conn.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,36 +33,39 @@ def init_db():
             )
         """)
 
-def get_user(username):
-    conn = _get_connection()
 
-    return conn.execute("""
-        SELECT * FROM users WHERE username = ?
-    """, (username,)).fetchone()  
+def get_user(username):
+    clean_name = username.strip() if username else ""
+    if not clean_name:
+        return None
+    with _get_conn() as conn:
+        row = conn.execute("SELECT id, username FROM users WHERE username = ? COLLATE NOCASE", (clean_name,)).fetchone()
+        if row:
+            return {"id": row["id"], "username": row["username"]}
+    return None
 
 
 def create_user(username):
-    conn = _get_connection()
-    with conn:
-        conn.execute("""
-            INSERT INTO users (username) VALUES (?)
-        """, (username,))
-    
-    return get_user(username)
+    clean_name = username.strip()
+    with _get_conn() as conn:
+        conn.execute("INSERT OR IGNORE INTO users (username) VALUES (?)", (clean_name,))
+    return get_user(clean_name)
 
 
 def get_or_create_user(username):
-    user = get_user(username)
+    clean_name = username.strip() if username else ""
+    user = get_user(clean_name)
     if user is None:
-        user = create_user(username)
+        user = create_user(clean_name)
     return user
 
 
 def add_exercise(user_id, exercise_name, sets, reps, time):
-    conn = _get_connection()
-    with conn:
+    if not user_id:
+        return
+    with _get_conn() as conn:
         existing = conn.execute("""
-            SELECT * FROM exercises
+            SELECT id FROM exercises
             WHERE user_id = ? AND exercise_name = ? AND date(created_at) = date('now')
         """, (user_id, exercise_name)).fetchone()
 
@@ -83,11 +80,16 @@ def add_exercise(user_id, exercise_name, sets, reps, time):
                 INSERT INTO exercises (user_id, exercise_name, sets, reps, time)
                 VALUES (?, ?, ?, ?, ?)
             """, (user_id, exercise_name, sets, reps, time))
-    
+
+
 def get_user_exercises(user_id):
-    conn = _get_connection()
-    return conn.execute("""
-        SELECT * FROM exercises  
-        WHERE user_id = ? 
-    """, (user_id,)).fetchall()
+    if not user_id:
+        return []
+    with _get_conn() as conn:
+        rows = conn.execute("""
+            SELECT exercise_name, sets, reps, time, created_at FROM exercises  
+            WHERE user_id = ?
+            ORDER BY created_at DESC
+        """, (user_id,)).fetchall()
+        return [dict(row) for row in rows]
 

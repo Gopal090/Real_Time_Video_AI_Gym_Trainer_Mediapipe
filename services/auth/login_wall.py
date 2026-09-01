@@ -31,10 +31,12 @@ def render_login_wall():
                return False
             
             user = get_or_create_user(username)
-
-            st.session_state["username"]= user["username"]
-            st.session_state["user_id"] = user["id"]
-    
-            st.rerun()
+            if user and "id" in user:
+                st.session_state["username"] = user["username"]
+                st.session_state["user_id"] = user["id"]
+                st.rerun()
+            else:
+                st.error("Failed to create or find user. Please try another name.")
+                return False
 
     return False 
